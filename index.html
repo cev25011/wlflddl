@@ -4,72 +4,84 @@
 <meta charset="UTF-8">
 <title>🐍 Worm Game</title>
 <style>
-body{
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html, body{
+    width:100%;
+    height:100%;
+    overflow:hidden; /* 스크롤 제거 */
     background:#111;
     color:white;
-    text-align:center;
     font-family:Arial;
 }
+
+body{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+}
+
+h1{
+    margin-bottom:10px;
+}
+
+#score{
+    margin-bottom:10px;
+}
+
 canvas{
     background:black;
-    border:4px solid white;
-    margin-top:20px;
+    border:3px solid white;
 }
+
 button{
-    margin-top:15px;
-    padding:8px 20px;
-    font-size:16px;
+    margin-top:10px;
+    padding:6px 15px;
     cursor:pointer;
 }
 </style>
 </head>
 <body>
 
-<h1>🐍 Worm Game 🐍</h1>
+<h1>🐍 Worm Game</h1>
 <div id="score">Score: 0</div>
-<canvas id="gameCanvas" width="600" height="600"></canvas>
-<br>
+<canvas id="gameCanvas"></canvas>
 <button onclick="restartGame()">다시 시작</button>
 
 <script>
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
-const gridSize = 20;
-const tileCount = canvas.width / gridSize;
+let gridSize = 20;
+let tileCount;
+let snake, food, dx, dy, score, speed, gameOver, loop;
 
-let snake;
-let food;
-let goldenFood = null;
-let dx, dy;
-let score;
-let speed;
-let gameOver;
-let loop;
+function resizeCanvas(){
+    const size = Math.min(window.innerWidth, window.innerHeight) - 150;
+    canvas.width = size;
+    canvas.height = size;
+    tileCount = canvas.width / gridSize;
+}
 
 function init(){
-    snake = [{x:10,y:10}];
-    dx = 1;
-    dy = 0;
-    score = 0;
-    speed = 120;
-    gameOver = false;
+    snake=[{x:10,y:10}];
+    dx=1; dy=0;
+    score=0;
+    speed=120;
+    gameOver=false;
     spawnFood();
-    goldenFood = null;
 }
 
 function spawnFood(){
-    food = {
-        x: Math.floor(Math.random()*tileCount),
-        y: Math.floor(Math.random()*tileCount)
+    food={
+        x:Math.floor(Math.random()*tileCount),
+        y:Math.floor(Math.random()*tileCount)
     };
-
-    if(Math.random()<0.2){
-        goldenFood = {
-            x: Math.floor(Math.random()*tileCount),
-            y: Math.floor(Math.random()*tileCount)
-        };
-    }
 }
 
 function drawRect(x,y,color){
@@ -78,7 +90,7 @@ function drawRect(x,y,color){
 }
 
 function moveSnake(){
-    const head = {x:snake[0].x+dx, y:snake[0].y+dy};
+    const head={x:snake[0].x+dx,y:snake[0].y+dy};
 
     if(head.x<0||head.x>=tileCount||head.y<0||head.y>=tileCount){
         gameOver=true;
@@ -96,15 +108,9 @@ function moveSnake(){
 
     if(head.x===food.x && head.y===food.y){
         score++;
+        speedUp();
         spawnFood();
-        speedUp();
-    }
-    else if(goldenFood && head.x===goldenFood.x && head.y===goldenFood.y){
-        score+=2;
-        goldenFood=null;
-        speedUp();
-    }
-    else{
+    } else {
         snake.pop();
     }
 }
@@ -124,16 +130,12 @@ function draw(){
     snake.forEach(s=>drawRect(s.x,s.y,"lime"));
     drawRect(food.x,food.y,"red");
 
-    if(goldenFood){
-        drawRect(goldenFood.x,goldenFood.y,"gold");
-    }
-
     document.getElementById("score").innerText="Score: "+score;
 
     if(gameOver){
         ctx.fillStyle="white";
         ctx.font="40px Arial";
-        ctx.fillText("GAME OVER",170,300);
+        ctx.fillText("GAME OVER",canvas.width/2-130,canvas.height/2);
     }
 }
 
@@ -158,6 +160,9 @@ function restartGame(){
     loop=setInterval(update,speed);
 }
 
+window.addEventListener("resize", resizeCanvas);
+
+resizeCanvas();
 init();
 loop=setInterval(update,speed);
 </script>
